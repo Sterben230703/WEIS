@@ -46,3 +46,25 @@ def calculate_npcr(original, test):
     total_pixels = original.size
 
     return changed_pixels / total_pixels
+def evaluate_all(original, recovered, encrypted, extracted_watermark, original_watermark):
+    """
+    Evaluate image and watermark quality using PSNR, SSIM, BER, and NPCR.
+    """
+    print("\n📈 Evaluation Results:\n" + "-" * 60)
+
+    # PSNR and SSIM between original and recovered
+    psnr_val = calculate_psnr(original, recovered)
+    ssim_val = calculate_ssim(original, recovered)
+    print(f"🖼️ Image Quality:\n  PSNR: {psnr_val:.2f} dB\n  SSIM: {ssim_val:.4f}")
+
+    # NPCR between original and encrypted
+    npcr_val = calculate_npcr(original, encrypted)
+    print(f"🔐 Encryption Strength:\n  NPCR: {npcr_val*100:.2f}%")
+
+    # BER for watermark (convert images to bits)
+    wm_bits_original = (original_watermark > 127).astype(np.uint8).flatten()
+    wm_bits_extracted = (extracted_watermark > 127).astype(np.uint8).flatten()
+
+    min_len = min(len(wm_bits_original), len(wm_bits_extracted))
+    ber_val = calculate_ber(wm_bits_original[:min_len], wm_bits_extracted[:min_len])
+    print(f"💧 Watermark Integrity:\n  BER: {ber_val*100:.2f}%")

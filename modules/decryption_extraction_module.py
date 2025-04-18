@@ -82,3 +82,29 @@ def reconstruct_image(HSB, LSB, n_bits):
     Reconstruct the original image from HSB and LSB.
     """
     return (HSB | LSB).astype(np.uint8)
+def decrypt_and_extract(marked_share1, marked_share2, block_size=2, seed=None, n_bits=4):
+    """
+    Complete pipeline to decrypt the image and extract the watermark bits.
+    """
+    # Step 1: Reverse scrambling
+    unscrambled1 = inverse_scramble(marked_share1, block_size, seed)
+    unscrambled2 = inverse_scramble(marked_share2, block_size, seed)
+
+    # Step 2: Combine shares
+    marked_image = combine_shares(unscrambled1, unscrambled2)
+
+    # Step 3: Extract watermark
+    watermark_bits, embedded_positions = extract_watermark(marked_image)
+
+    # Step 4: Recover original image
+    recovered_image = recover_image(marked_image, watermark_bits, embedded_positions)
+
+    # Step 5: Return recovered image and extracted watermark (reshaped to square if needed)
+    side_len = int(np.ceil(np.sqrt(len(watermark_bits))))
+    watermark_array = np.zeros((side_len, side_len), dtype=np.uint8)
+    for idx, bit in enumerate(watermark_bits):
+        row = idx // side_len
+        col = idx % side_len
+        watermark_array[row, col] = bit * 255
+
+    return recovered_image, watermark_array

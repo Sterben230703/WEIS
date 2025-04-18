@@ -193,3 +193,21 @@ def recover_original(marked_image, embedded_positions, watermark_bits):
     for (i, j), bit in zip(embedded_positions, watermark_bits):
         recovered[i, j] = np.clip(recovered[i, j] - bit, 0, 255)
     return recovered
+def apply_modified_rrwei(image, watermark_image):
+    """
+    High-level function to embed watermark using the modified RRWEI-SM method.
+    Converts watermark to bit array, embeds it, and returns the marked image and side info.
+    """
+    # Convert watermark image to bit array (assuming binary watermark)
+    watermark_bits = (watermark_image > 127).astype(np.uint8).flatten()
+
+    # Embed watermark
+    marked_image, embedded_positions = robust_embed(image, watermark_bits)
+
+    # Store side info (positions & bits) if needed for full reversibility
+    side_info = {
+        "positions": embedded_positions,
+        "watermark_bits": watermark_bits
+    }
+
+    return marked_image, side_info

@@ -79,12 +79,12 @@ def run_encryption(image_path):
     save_image("output/share2.png", scrambled_share2)
     return scrambled_share1, scrambled_share2, HSB, image
 
-def run_embedding(scrambled_share1, scrambled_share2, watermark_path):
+def run_embedding(scrambled_share1, watermark_path):
     watermark = load_watermark(watermark_path)
-    marked_share1, marked_share2 = embed_watermark_bits(scrambled_share1, scrambled_share2, watermark)
+    marked_share1, embedded_pos = embed_watermark_bits(scrambled_share1, watermark)
     save_image("output/marked_share1.png", marked_share1)
-    save_image("output/marked_share2.png", marked_share2)
-    return marked_share1, marked_share2, watermark
+    return marked_share1, watermark
+
 
 def run_decryption_and_extraction(marked_share1, marked_share2):
     recovered_image, extracted_watermark = decrypt_and_extract(marked_share1, marked_share2)
@@ -111,7 +111,10 @@ def main():
         s1, s2, HSB, original = run_encryption(args.cover)
 
         phase_separator("Phase 2: Watermark Embedding")
-        m1, m2, watermark = run_embedding(s1, s2, args.watermark)
+        m1, watermark = run_embedding(s1, args.watermark)
+        m2 = s2  # unmodified second share
+        save_image("output/marked_share2.png", m2)
+
 
         phase_separator("Phase 3: Decryption & Watermark Extraction")
         recovered_image, extracted_watermark = run_decryption_and_extraction(m1, m2)
